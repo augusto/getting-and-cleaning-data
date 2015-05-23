@@ -4,10 +4,10 @@ library(reshape2)
 
 # set workspace
 #setwd("/Users/augusto/data/data-assig")
-#rm(list=ls())
+rm(list=ls())
 
 
-# Download dataset (if required)
+# 1. Download dataset (if required)
 if(!dir.exists("UCI HAR Dataset")) {
   if( !file.exists("getdata_projectfiles_UCI HAR Dataset.zip")) {
     download.file("https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip ", destfile = "getdata_projectfiles_UCI HAR Dataset.zip", method = "curl")
@@ -15,6 +15,7 @@ if(!dir.exists("UCI HAR Dataset")) {
   unzip("getdata_projectfiles_UCI HAR Dataset.zip")
 }
 
+# 2. load data
 # load activity labels
 activityLabels <- read.table("UCI HAR Dataset/activity_labels.txt", header = FALSE, col.names=c("activityid","activitylabel"))
 
@@ -39,7 +40,7 @@ trainSubjects <- read.table("UCI HAR Dataset/train/subject_train.txt", header = 
 subject <- rbind(testSubjects, trainSubjects)
 remove(testSubjects, trainSubjects)
 
-# select which metrics to keep (only mean and std)
+# 3. select which metrics to keep (only mean and std)
 meanFeaturesIndices <- grep("mean\\(\\)", featureLabels$featurelabel)
 stdFeaturesIndices <- grep("std\\(\\)", featureLabels$featurelabel)
 featuresToKeep <- cbind(meanFeaturesIndices, stdFeaturesIndices)
@@ -47,20 +48,25 @@ remove( meanFeaturesIndices, stdFeaturesIndices)
 
 selectedFeatures <- features[,featuresToKeep]
 
-# transform names to be more human readable
+# 4. transform names to be more human readable
 cleanNames <- tolower(gsub("[\\(\\),\\-]","",featureLabels$featurelabel[featuresToKeep]))
 cleanNames <- gsub("^t","time",cleanNames)
 cleanNames <- gsub("^f","fourier",cleanNames)
 names(selectedFeatures) <- cleanNames
 remove(cleanNames)
 
-# put all data into one dataframe in preparation to melt it.
+
+# 5. Tidy up the data
+# 5a. Melt all the variables using the subjectid and activityid as ids
+# Put all data into one dataframe in preparation to melt it.
 subjectActivity <- cbind(subject, activity)
 allData <- cbind(selectedFeatures, subjectid=subjectActivity$subjectid, activityid=subjectActivity$activityid)
-
-
 meltedData <- melt(allData, id.vars = c("subjectid","activityid"))
+
+# 5.b Re-cast the data by subjectid and activityid, aggregating the values by averaging all the observations.
 meanPerSubjectAndActivity <- dcast(meltedData, subjectid + activityid ~ variable, fun.aggregate=mean)
 
 remove(subjectActivity, allData, meltedData)
+
+# 6. write file
 write.table(meanPerSubjectAndActivity, "tidy.txt", row.names = F);
