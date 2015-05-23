@@ -1,2 +1,6 @@
 /UCI HAR Dataset
 /dataset.zip
+/tidy.txt
+.DS_Store
+.RData
+.Rhistory
