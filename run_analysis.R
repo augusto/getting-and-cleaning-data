@@ -3,8 +3,8 @@ library(dplyr)
 library(reshape2)
 
 # set workspace
-setwd("/Users/augusto/data/data-assig")
-rm(list=ls())
+#setwd("/Users/augusto/data/data-assig")
+#rm(list=ls())
 
 
 # Download dataset (if required)
